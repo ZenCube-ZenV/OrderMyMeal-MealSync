@@ -13,6 +13,11 @@ public class PasswordEncoderService {
     }
 
     public boolean matches(String rawPassword, String encodedPassword) {
-        return encodedPassword != null && encoder.matches(rawPassword, encodedPassword);
+        return encodedPassword != null
+                && encoder.matches(rawPassword, encodedPassword);
+    }
+
+    public String generateHash(String rawPassword) {
+        return encoder.encode(rawPassword);
     }
 }

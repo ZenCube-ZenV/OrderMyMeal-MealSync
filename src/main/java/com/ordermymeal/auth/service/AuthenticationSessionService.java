@@ -4,6 +4,7 @@ import com.ordermymeal.auth.config.AuthProperties;
 import com.ordermymeal.auth.dto.LoginResponse;
 import com.ordermymeal.auth.model.AuthSession;
 import com.ordermymeal.auth.model.Role;
+import com.ordermymeal.auth.model.User;
 import com.ordermymeal.auth.repository.SessionRepository;
 import com.ordermymeal.membership.model.MembershipRole;
 import com.ordermymeal.membership.model.OrganizationMember;
@@ -28,6 +29,7 @@ public class AuthenticationSessionService {
                         SessionTokenService sessionTokenService,
                         MembershipRoleRepository membershipRoleRepository,
                         AuthProperties authProperties) {
+
                 this.sessionRepository = sessionRepository;
                 this.sessionTokenService = sessionTokenService;
                 this.membershipRoleRepository = membershipRoleRepository;
@@ -35,12 +37,22 @@ public class AuthenticationSessionService {
         }
 
         @Transactional
-        public SessionResult createSession(OrganizationMember membership) {
+        public SessionResult createSession(
+                        OrganizationMember membership) {
+
+                if (membership == null || membership.getUser() == null) {
+                        throw new IllegalArgumentException(
+                                        "Valid organization membership is required.");
+                }
+
+                User user = membership.getUser();
+
                 Instant now = Instant.now();
                 String token = sessionTokenService.generateToken();
 
                 AuthSession session = new AuthSession(
                                 UUID.randomUUID(),
+                                user.getUserId(),
                                 membership.getMembershipId(),
                                 sessionTokenService.hashToken(token),
                                 now,
@@ -70,6 +82,43 @@ public class AuthenticationSessionService {
                                                 roles));
         }
 
-        public record SessionResult(String token, LoginResponse response) {
+        @Transactional
+        public SessionResult createSuperadminSession(
+                        User user,
+                        List<Role> roles) {
+
+                if (user == null || user.getUserId() == null) {
+                        throw new IllegalArgumentException(
+                                        "Valid Superadmin user is required.");
+                }
+
+                Instant now = Instant.now();
+                String token = sessionTokenService.generateToken();
+
+                AuthSession session = new AuthSession(
+                                UUID.randomUUID(),
+                                user.getUserId(),
+                                null,
+                                sessionTokenService.hashToken(token),
+                                now,
+                                now.plus(authProperties.getSessionLifetime()),
+                                null,
+                                now,
+                                now);
+
+                sessionRepository.save(session);
+
+                return new SessionResult(
+                                token,
+                                new LoginResponse(
+                                                "Login successful.",
+                                                null,
+                                                null,
+                                                roles));
+        }
+
+        public record SessionResult(
+                        String token,
+                        LoginResponse response) {
         }
 }

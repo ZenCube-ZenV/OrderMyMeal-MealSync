@@ -20,16 +20,19 @@ public class CurrentSessionService {
     public CurrentSessionService(
             SessionRepository sessionRepository,
             SessionTokenService sessionTokenService) {
+
         this.sessionRepository = sessionRepository;
         this.sessionTokenService = sessionTokenService;
     }
 
-    public AuthSession getCurrentSession(HttpServletRequest request) {
+    public AuthSession getCurrentSession(
+            HttpServletRequest request) {
 
         String token = extractSessionToken(request);
 
         if (token == null || token.isBlank()) {
-            throw new AuthorizationException("Authentication required.");
+            throw new AuthorizationException(
+                    "Authentication required.");
         }
 
         byte[] tokenHash = sessionTokenService.hashToken(token);
@@ -42,12 +45,34 @@ public class CurrentSessionService {
                         "Session is invalid or expired."));
     }
 
-    public Long getCurrentMembershipId(HttpServletRequest request) {
+    public Long getCurrentUserId(
+            HttpServletRequest request) {
 
-        return getCurrentSession(request).getMembershipId();
+        return getCurrentSession(request).getUserId();
     }
 
-    private String extractSessionToken(HttpServletRequest request) {
+    public Long getCurrentMembershipId(
+            HttpServletRequest request) {
+
+        Long membershipId = getCurrentSession(request).getMembershipId();
+
+        if (membershipId == null) {
+            throw new AuthorizationException(
+                    "This session is not associated with an organization membership.");
+        }
+
+        return membershipId;
+    }
+
+    public boolean isSuperadminSession(
+            HttpServletRequest request) {
+
+        return getCurrentSession(request)
+                .getMembershipId() == null;
+    }
+
+    private String extractSessionToken(
+            HttpServletRequest request) {
 
         if (request.getCookies() == null) {
             return null;

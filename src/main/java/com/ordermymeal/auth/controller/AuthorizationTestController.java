@@ -1,6 +1,5 @@
 package com.ordermymeal.auth.controller;
 
-import com.ordermymeal.auth.model.Permission;
 import com.ordermymeal.auth.service.AuthorizationService;
 import com.ordermymeal.auth.service.CurrentSessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,39 +12,41 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth/test")
 public class AuthorizationTestController {
 
-    private final AuthorizationService authorizationService;
-    private final CurrentSessionService currentSessionService;
+        private final AuthorizationService authorizationService;
+        private final CurrentSessionService currentSessionService;
 
-    public AuthorizationTestController(
-            AuthorizationService authorizationService,
-            CurrentSessionService currentSessionService) {
-        this.authorizationService = authorizationService;
-        this.currentSessionService = currentSessionService;
-    }
+        public AuthorizationTestController(
+                        AuthorizationService authorizationService,
+                        CurrentSessionService currentSessionService) {
+                this.authorizationService = authorizationService;
+                this.currentSessionService = currentSessionService;
+        }
 
-    @GetMapping("/user")
-    public ResponseEntity<String> userAccess(
-            HttpServletRequest request) {
-        Long membershipId = currentSessionService.getCurrentMembershipId(request);
+        @GetMapping("/user")
+        public ResponseEntity<String> userAccess(
+                        HttpServletRequest request) {
 
-        authorizationService.requirePermission(
-                membershipId,
-                Permission.MENU_VIEW);
+                Long membershipId = currentSessionService.getCurrentMembershipId(request);
 
-        return ResponseEntity.ok(
-                "Access granted: MENU_VIEW");
-    }
+                authorizationService.requirePermission(
+                                membershipId,
+                                "organization.view");
 
-    @GetMapping("/admin")
-    public ResponseEntity<String> adminAccess(
-            HttpServletRequest request) {
-        Long membershipId = currentSessionService.getCurrentMembershipId(request);
+                return ResponseEntity.ok(
+                                "Access granted: organization.view");
+        }
 
-        authorizationService.requirePermission(
-                membershipId,
-                Permission.MEMBER_MANAGE);
+        @GetMapping("/admin")
+        public ResponseEntity<String> adminAccess(
+                        HttpServletRequest request) {
 
-        return ResponseEntity.ok(
-                "Access granted: MEMBER_MANAGE");
-    }
+                Long membershipId = currentSessionService.getCurrentMembershipId(request);
+
+                authorizationService.requirePermission(
+                                membershipId,
+                                "member.create");
+
+                return ResponseEntity.ok(
+                                "Access granted: member.create");
+        }
 }

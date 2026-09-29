@@ -26,6 +26,7 @@ public class SetPasswordService {
             OrganizationMemberRepository membershipRepository,
             UserRepository userRepository,
             PasswordEncoderService passwordEncoderService) {
+
         this.sessionRepository = sessionRepository;
         this.sessionTokenService = sessionTokenService;
         this.membershipRepository = membershipRepository;
@@ -34,33 +35,69 @@ public class SetPasswordService {
     }
 
     @Transactional
-    public void setPassword(String sessionToken, String rawPassword) {
+    public void setPassword(
+            String sessionToken,
+            String rawPassword) {
+
         if (sessionToken == null || sessionToken.isBlank()) {
-            throw new IllegalArgumentException("Authentication is required.");
+            throw new IllegalArgumentException(
+                    "Authentication is required.");
         }
 
         Instant now = Instant.now();
 
         AuthSession session = sessionRepository
                 .findByTokenHashAndRevokedAtIsNullAndExpiresAtAfter(
-                        sessionTokenService.hashToken(sessionToken), now)
+                        sessionTokenService.hashToken(sessionToken),
+                        now)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Session is invalid or expired."));
 
-        OrganizationMember membership = membershipRepository
-                .findById(session.getMembershipId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Membership not found."));
+        User user;
 
-        if (!"ACTIVE".equalsIgnoreCase(membership.getStatus())) {
-            throw new IllegalArgumentException("Membership is not active.");
+        /*
+         * Super Admin session
+         *
+         * Super Admin sessions do not have an organization
+         * membership, so membershipId is null.
+         */
+        if (session.getMembershipId() == null) {
+
+            user = userRepository
+                    .findById(session.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "User not found."));
+
+        } else {
+
+            /*
+             * Organization user/admin/vendor session
+             */
+            OrganizationMember membership = membershipRepository
+                    .findById(session.getMembershipId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Membership not found."));
+
+            if (!"ACTIVE".equalsIgnoreCase(
+                    membership.getStatus())) {
+
+                throw new IllegalArgumentException(
+                        "Membership is not active.");
+            }
+
+            user = userRepository
+                    .findById(
+                            membership.getUser().getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "User not found."));
         }
 
-        User user = userRepository.findById(membership.getUser().getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        /*
+         * Store the password using BCrypt.
+         */
+        user.setPasswordHash(
+                passwordEncoderService.encode(rawPassword));
 
-        user.setPasswordHash(passwordEncoderService.encode(rawPassword));
         userRepository.save(user);
-
     }
 }

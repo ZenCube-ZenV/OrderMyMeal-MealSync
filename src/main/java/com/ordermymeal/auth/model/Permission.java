@@ -1,26 +1,35 @@
 package com.ordermymeal.auth.model;
 
-public enum Permission {
+import jakarta.persistence.*;
 
-    MENU_VIEW,
-    ORDER_CREATE,
-    ORDER_VIEW_OWN,
-    ORDER_CANCEL_OWN,
+import java.util.UUID;
 
-    VENDOR_MENU_MANAGE,
-    VENDOR_ORDER_VIEW,
-    VENDOR_ORDER_UPDATE,
-    VENDOR_MANIFEST_VIEW,
+@Entity
+@Table(name = "permissions", uniqueConstraints = @UniqueConstraint(name = "uq_permissions_name", columnNames = "name"))
+public class Permission {
 
-    MEMBER_MANAGE,
-    VENDOR_MANAGE,
-    MENU_MANAGE,
-    ORDER_VIEW,
-    REFUND_MANAGE,
-    REPORT_VIEW,
+    @Id
+    @Column(name = "permission_id", nullable = false)
+    private UUID permissionId;
 
-    ORGANIZATION_MANAGE,
-    ADMIN_MANAGE,
-    SYSTEM_MANAGE,
-    AUDIT_VIEW
+    @Column(name = "name", nullable = false, length = 100, unique = true)
+    private String name;
+
+    @Column(name = "description", length = 255)
+    private String description;
+
+    protected Permission() {
+    }
+
+    public UUID getPermissionId() {
+        return permissionId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }

@@ -1,9 +1,6 @@
 package com.ordermymeal.auth.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,7 +12,10 @@ public class AuthSession {
     @Id
     private UUID id;
 
-    @Column(name = "membership_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "membership_id")
     private Long membershipId;
 
     @Column(name = "token_hash", nullable = false, unique = true, columnDefinition = "bytea")
@@ -41,15 +41,16 @@ public class AuthSession {
 
     public AuthSession(
             UUID id,
+            Long userId,
             Long membershipId,
             byte[] tokenHash,
             Instant lastUsedAt,
             Instant expiresAt,
             Instant revokedAt,
             Instant createdAt,
-            Instant updatedAt
-    ) {
+            Instant updatedAt) {
         this.id = id;
+        this.userId = userId;
         this.membershipId = membershipId;
         this.tokenHash = tokenHash;
         this.lastUsedAt = lastUsedAt;
@@ -61,6 +62,10 @@ public class AuthSession {
 
     public UUID getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public Long getMembershipId() {
@@ -96,5 +101,3 @@ public class AuthSession {
         this.updatedAt = Instant.now();
     }
 }
-
-

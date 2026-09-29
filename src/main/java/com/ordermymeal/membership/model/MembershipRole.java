@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "membership_roles", uniqueConstraints = @UniqueConstraint(name = "uq_membership_role", columnNames = {
-        "membership_id", "role" }))
+@Table(name = "membership_roles", uniqueConstraints = @UniqueConstraint(name = "uq_membership_roles_membership_role_id", columnNames = {
+        "membership_id", "role_id" }))
 public class MembershipRole {
 
     @Id
@@ -17,8 +17,8 @@ public class MembershipRole {
     @Column(name = "membership_id", nullable = false)
     private Long membershipId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false, foreignKey = @ForeignKey(name = "fk_membership_roles_role"))
     private Role role;
 
     @Column(name = "created_at", nullable = false)
