@@ -35,3 +35,5 @@ public class AuthExceptionHandler {
                 .body(Map.of("message", exception.getMessage()));
     }
 }
+
+

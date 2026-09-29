@@ -19,3 +19,5 @@ public interface OrganizationMemberRepository
             Long userId,
             String status);
 }
+
+

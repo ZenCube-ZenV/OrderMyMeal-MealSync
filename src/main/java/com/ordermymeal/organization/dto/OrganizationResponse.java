@@ -87,3 +87,4 @@ public class OrganizationResponse {
         this.adminName = adminName;
     }
 }
+

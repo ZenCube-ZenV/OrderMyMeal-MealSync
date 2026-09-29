@@ -28,3 +28,4 @@ public class RolePermissionId implements Serializable {
         return permissionId;
     }
 }
+

@@ -70,3 +70,4 @@ public class OrganizationMember {
         this.createdAt = createdAt;
     }
 }
+

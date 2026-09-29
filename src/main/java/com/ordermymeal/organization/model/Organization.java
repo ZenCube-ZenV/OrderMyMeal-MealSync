@@ -154,3 +154,4 @@ public class Organization {
         this.createdAt = createdAt;
     }
 }
+

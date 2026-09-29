@@ -12,3 +12,4 @@ public interface RolePermissionRepository
 
     List<RolePermission> findByRole_RoleId(UUID roleId);
 }
+

@@ -21,3 +21,4 @@ public class PasswordEncoderService {
         return encoder.encode(rawPassword);
     }
 }
+

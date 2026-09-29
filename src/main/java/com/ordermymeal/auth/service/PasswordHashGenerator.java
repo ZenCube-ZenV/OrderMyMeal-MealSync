@@ -15,3 +15,5 @@ public class PasswordHashGenerator {
                 encoder.matches("Admin@123", hash));
     }
 }
+
+

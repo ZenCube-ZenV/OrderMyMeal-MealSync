@@ -31,3 +31,4 @@ public class EmailNotificationService {
         mailSender.send(message);
     }
 }
+

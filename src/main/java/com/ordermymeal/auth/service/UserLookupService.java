@@ -30,3 +30,4 @@ public class UserLookupService {
         return membershipRepository.findByUserUserId(userId);
     }
 }
+

@@ -122,3 +122,4 @@ public class RequestOtpService {
                 return email.trim().toLowerCase();
         }
 }
+

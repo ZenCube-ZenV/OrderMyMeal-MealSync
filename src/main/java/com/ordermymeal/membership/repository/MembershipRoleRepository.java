@@ -9,3 +9,5 @@ public interface MembershipRoleRepository extends JpaRepository<MembershipRole, 
 
     List<MembershipRole> findByMembershipId(Long membershipId);
 }
+
+

@@ -6,3 +6,4 @@ public class AuthorizationException extends RuntimeException {
         super(message);
     }
 }
+

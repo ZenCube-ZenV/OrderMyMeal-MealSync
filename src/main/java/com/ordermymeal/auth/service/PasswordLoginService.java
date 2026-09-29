@@ -149,3 +149,4 @@ public class PasswordLoginService {
         return memberships.get(0);
     }
 }
+
