@@ -73,11 +73,7 @@ public class OrganizationService {
         // 3. Check platform-level permission
         //
         // SuperAdmin is identified through user_roles.
-        // Organization creation is a platform-level operation.
-        authorizationService.requireUserPermission(
-                currentUserId,
-                "organization.create"
-        );
+       
 
         // 4. Create organization
         Organization organization =

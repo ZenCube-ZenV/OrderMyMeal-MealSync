@@ -3,6 +3,7 @@ package com.ordermymeal.catalogue.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ordermymeal.auth.model.Permission;
 import com.ordermymeal.auth.service.CurrentSessionService;
 import com.ordermymeal.catalogue.dto.RegisterVendorRequest;
 import com.ordermymeal.catalogue.dto.UpdateVendorRequest;
@@ -27,6 +27,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/catalogue/vendors")
+@PreAuthorize("hasAuthority('vendor.manage')")
 public class VendorController {
 
     private final RegisterVendorService registerVendorService;
@@ -44,101 +45,79 @@ public class VendorController {
             CatalogueContextService catalogueContextService,
             CurrentSessionService currentSessionService) {
 
-        this.registerVendorService =
-                registerVendorService;
-
-        this.updateVendorService =
-                updateVendorService;
-
-        this.getVendorService =
-                getVendorService;
-
-        this.getVendorsService =
-                getVendorsService;
-
-        this.catalogueContextService =
-                catalogueContextService;
-
-        this.currentSessionService =
-                currentSessionService;
+        this.registerVendorService = registerVendorService;
+        this.updateVendorService = updateVendorService;
+        this.getVendorService = getVendorService;
+        this.getVendorsService = getVendorsService;
+        this.catalogueContextService = catalogueContextService;
+        this.currentSessionService = currentSessionService;
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('vendor.manage')")
     public ResponseEntity<VendorResponse> registerVendor(
             @Valid @RequestBody RegisterVendorRequest request,
             HttpServletRequest httpRequest) {
 
-        Long membershipId =
-                currentSessionService
-                        .getCurrentMembershipId(httpRequest);
+        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
 
-        VendorResponse response =
-                registerVendorService.registerVendor(
-                        membershipId,
-                        request);
+        VendorResponse response = registerVendorService.registerVendor(
+                membershipId,
+                request);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{vendorId}")
+    @PreAuthorize("hasAuthority('vendor.manage')")
     public ResponseEntity<VendorResponse> getVendor(
             @PathVariable Long vendorId,
             HttpServletRequest httpRequest) {
 
-        Long membershipId =
-                currentSessionService
-                        .getCurrentMembershipId(httpRequest);
+        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
 
-        Long organizationId =
-                catalogueContextService.requireOrganization(
-                        membershipId,
-                        "vendor.manage");
+        Long organizationId = catalogueContextService.requireOrganization(
+                membershipId,
+                "vendor.manage");
 
-        VendorResponse response =
-                getVendorService.execute(
-                        vendorId,
-                        organizationId);
+        VendorResponse response = getVendorService.execute(
+                vendorId,
+                organizationId);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('vendor.manage')")
     public ResponseEntity<List<VendorResponse>> getVendors(
             HttpServletRequest httpRequest) {
 
-        Long membershipId =
-                currentSessionService
-                        .getCurrentMembershipId(httpRequest);
+        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
 
-        Long organizationId =
-                catalogueContextService.requireOrganization(
-                        membershipId,
-                        "vendor.manage");
+        Long organizationId = catalogueContextService.requireOrganization(
+                membershipId,
+                "vendor.manage");
 
-        List<VendorResponse> response =
-                getVendorsService.execute(
-                        organizationId);
+        List<VendorResponse> response = getVendorsService.execute(
+                organizationId);
 
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{vendorId}")
+    @PreAuthorize("hasAuthority('vendor.manage')")
     public ResponseEntity<VendorResponse> updateVendor(
             @PathVariable Long vendorId,
             @Valid @RequestBody UpdateVendorRequest request,
             HttpServletRequest httpRequest) {
 
-        Long membershipId =
-                currentSessionService
-                        .getCurrentMembershipId(httpRequest);
+        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
 
-        VendorResponse response =
-                updateVendorService.updateVendor(
-                        membershipId,
-                        vendorId,
-                        request);
+        VendorResponse response = updateVendorService.updateVendor(
+                membershipId,
+                vendorId,
+                request);
 
         return ResponseEntity.ok(response);
     }
-}  
-
+}
