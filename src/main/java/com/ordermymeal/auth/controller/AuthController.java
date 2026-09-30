@@ -67,16 +67,18 @@ public class AuthController {
      * ============================================================
      */
     @PostMapping("/login/otp")
-    public ResponseEntity<LoginResponse> loginWithOtp(
-            @Valid @RequestBody VerifyOtpRequest request,
-            HttpServletResponse httpResponse) {
+public ResponseEntity<LoginResponse> loginWithOtp(
+        @Valid @RequestBody VerifyOtpRequest request,
+        HttpServletResponse httpResponse) {
 
-        AuthenticationSessionService.SessionResult result = verifyOtpService.verifyOtp(
-                request.email(),
-                request.otp(),
-                request.organizationId());
+        AuthenticationSessionService.SessionResult result =
+                verifyOtpService.verifyOtp(
+                        request.email(),
+                        request.otp());
 
-        addSessionCookie(httpResponse, result.token());
+        addSessionCookie(
+                    httpResponse,
+                result.token());
 
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
@@ -100,8 +102,8 @@ public class AuthController {
 
         AuthenticationSessionService.SessionResult result = passwordLoginService.login(
                 request.email(),
-                request.password(),
-                request.organizationId());
+                request.password()
+        );
 
         addSessionCookie(httpResponse, result.token());
 

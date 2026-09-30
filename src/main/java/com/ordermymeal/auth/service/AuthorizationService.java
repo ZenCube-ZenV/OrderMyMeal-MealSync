@@ -54,7 +54,8 @@ public class AuthorizationService {
 
             Set<Permission> rolePermissions =
                     rolePermissionRepository
-                            .findByRole_RoleId(role.getRoleId())
+                            .findWithPermissionsByRoleId(
+                                    role.getRoleId())
                             .stream()
                             .map(RolePermission::getPermission)
                             .collect(Collectors.toSet());
@@ -94,7 +95,7 @@ public class AuthorizationService {
     public Set<Role> getUserRoles(Long userId) {
 
         return userRoleRepository
-                .findByUserUserId(userId)
+                .findWithRolesByUserId(userId)
                 .stream()
                 .map(UserRole::getRole)
                 .collect(Collectors.toSet());
@@ -110,7 +111,8 @@ public class AuthorizationService {
 
             Set<Permission> rolePermissions =
                     rolePermissionRepository
-                            .findByRole_RoleId(role.getRoleId())
+                            .findWithPermissionsByRoleId(
+                                    role.getRoleId())
                             .stream()
                             .map(RolePermission::getPermission)
                             .collect(Collectors.toSet());
@@ -143,4 +145,3 @@ public class AuthorizationService {
         }
     }
 }
-

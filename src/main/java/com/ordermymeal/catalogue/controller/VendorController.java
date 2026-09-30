@@ -27,7 +27,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/catalogue/vendors")
-@PreAuthorize("hasAuthority('vendor.manage')")
 public class VendorController {
 
     private final RegisterVendorService registerVendorService;
@@ -53,70 +52,100 @@ public class VendorController {
         this.currentSessionService = currentSessionService;
     }
 
+    /*
+     * ADMIN
+     * -----
+     * Requires vendor.create permission.
+     */
     @PostMapping
-    @PreAuthorize("hasAuthority('vendor.manage')")
+    @PreAuthorize("hasAuthority('vendor.create')")
     public ResponseEntity<VendorResponse> registerVendor(
             @Valid @RequestBody RegisterVendorRequest request,
             HttpServletRequest httpRequest) {
 
-        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
+        Long membershipId =
+                currentSessionService
+                        .getCurrentMembershipId(httpRequest);
 
-        VendorResponse response = registerVendorService.registerVendor(
-                membershipId,
-                request);
+        VendorResponse response =
+                registerVendorService.registerVendor(
+                        membershipId,
+                        request);
 
         return ResponseEntity.ok(response);
     }
 
+    /*
+     * Requires vendor.view permission.
+     */
     @GetMapping("/{vendorId}")
-    @PreAuthorize("hasAuthority('vendor.manage')")
+    @PreAuthorize("hasAuthority('vendor.view')")
     public ResponseEntity<VendorResponse> getVendor(
             @PathVariable Long vendorId,
             HttpServletRequest httpRequest) {
 
-        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
+        Long membershipId =
+                currentSessionService
+                        .getCurrentMembershipId(httpRequest);
 
-        Long organizationId = catalogueContextService.requireOrganization(
-                membershipId,
-                "vendor.manage");
+        Long organizationId =
+                catalogueContextService
+                        .requireOrganization(
+                                membershipId,
+                                "vendor.view");
 
-        VendorResponse response = getVendorService.execute(
-                vendorId,
-                organizationId);
+        VendorResponse response =
+                getVendorService.execute(
+                        vendorId,
+                        organizationId);
 
         return ResponseEntity.ok(response);
     }
 
+    /*
+     * Requires vendor.view permission.
+     */
     @GetMapping
-    @PreAuthorize("hasAuthority('vendor.manage')")
+    @PreAuthorize("hasAuthority('vendor.view')")
     public ResponseEntity<List<VendorResponse>> getVendors(
             HttpServletRequest httpRequest) {
 
-        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
+        Long membershipId =
+                currentSessionService
+                        .getCurrentMembershipId(httpRequest);
 
-        Long organizationId = catalogueContextService.requireOrganization(
-                membershipId,
-                "vendor.manage");
+        Long organizationId =
+                catalogueContextService
+                        .requireOrganization(
+                                membershipId,
+                                "vendor.view");
 
-        List<VendorResponse> response = getVendorsService.execute(
-                organizationId);
+        List<VendorResponse> response =
+                getVendorsService.execute(
+                        organizationId);
 
         return ResponseEntity.ok(response);
     }
 
+    /*
+     * Requires vendor.update permission.
+     */
     @PutMapping("/{vendorId}")
-    @PreAuthorize("hasAuthority('vendor.manage')")
+    @PreAuthorize("hasAuthority('vendor.update')")
     public ResponseEntity<VendorResponse> updateVendor(
             @PathVariable Long vendorId,
             @Valid @RequestBody UpdateVendorRequest request,
             HttpServletRequest httpRequest) {
 
-        Long membershipId = currentSessionService.getCurrentMembershipId(httpRequest);
+        Long membershipId =
+                currentSessionService
+                        .getCurrentMembershipId(httpRequest);
 
-        VendorResponse response = updateVendorService.updateVendor(
-                membershipId,
-                vendorId,
-                request);
+        VendorResponse response =
+                updateVendorService.updateVendor(
+                        membershipId,
+                        vendorId,
+                        request);
 
         return ResponseEntity.ok(response);
     }

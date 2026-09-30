@@ -38,18 +38,25 @@ public class PasswordLoginService {
     @Transactional
     public AuthenticationSessionService.SessionResult login(
             String email,
-            String password,
-            Long organizationId) {
+            String password) {
 
         String normalizedEmail = email.trim().toLowerCase();
 
+        /*
+         * ---------------------------------------------------------
+         * 1. Find User
+         * ---------------------------------------------------------
+         */
         User user = userRepository
                 .findByEmail(normalizedEmail)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Invalid email or password."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid email or password."));
 
         /*
-         * User must be active and have a password.
+         * ---------------------------------------------------------
+         * 2. Validate User
+         * ---------------------------------------------------------
          */
         if (!"ACTIVE".equalsIgnoreCase(user.getStatus())
                 || user.getPasswordHash() == null
@@ -62,91 +69,118 @@ public class PasswordLoginService {
         }
 
         /*
-         * Load platform-level roles assigned directly
-         * to the user.
+         * ---------------------------------------------------------
+         * 3. Load platform-level roles
+         * ---------------------------------------------------------
          */
-        List<Role> userRoles = userRoleRepository
-                .findByUserUserId(user.getUserId())
-                .stream()
-                .map(UserRole::getRole)
-                .toList();
+        List<Role> userRoles =
+                userRoleRepository
+                        .findByUserUserId(user.getUserId())
+                        .stream()
+                        .map(UserRole::getRole)
+                        .toList();
 
         /*
-         * Super Admin is a platform-level role.
+         * ---------------------------------------------------------
+         * 4. SUPERADMIN LOGIN
+         * ---------------------------------------------------------
          *
-         * Super Admin does NOT require:
-         * - organizationId
-         * - organization_members record
+         * Superadmin is a platform-level user.
          *
-         * Super Admin logs in using email + password.
+         * Therefore:
+         *
+         * Superadmin
+         *     ↓
+         * No organization
+         * No organization membership required
          */
-        boolean superadmin = userRoles.stream()
-                .anyMatch(role -> "superadmin".equalsIgnoreCase(role.getName()));
+        boolean superadmin =
+                userRoles.stream()
+                        .anyMatch(role ->
+                                "superadmin".equalsIgnoreCase(
+                                        role.getName()));
 
         if (superadmin) {
+
             return sessionService.createSuperadminSession(
                     user,
                     userRoles);
         }
 
         /*
-         * Admin, User and Vendor are organization-level users.
+         * ---------------------------------------------------------
+         * 5. ORGANIZATION USER LOGIN
+         * ---------------------------------------------------------
          *
-         * They must have an ACTIVE organization membership.
+         * Admin / Vendor / Member
+         *
+         * These users must have an active organization
+         * membership.
          */
-        List<OrganizationMember> memberships = membershipRepository
-                .findByUserUserIdAndStatusOrderByMembershipIdAsc(
-                        user.getUserId(),
-                        "ACTIVE");
+        List<OrganizationMember> memberships =
+                membershipRepository
+                        .findByUserUserIdAndStatusOrderByMembershipIdAsc(
+                                user.getUserId(),
+                                "ACTIVE");
 
-        OrganizationMember membership = selectMembership(
-                memberships,
-                organizationId);
+        /*
+         * ---------------------------------------------------------
+         * 6. Select organization membership
+         * ---------------------------------------------------------
+         *
+         * organizationId is NOT supplied by the frontend.
+         *
+         * The organization is determined from the user's
+         * active membership.
+         */
+        OrganizationMember membership =
+                selectMembership(memberships);
 
-        return sessionService.createSession(
-                membership);
+        /*
+         * ---------------------------------------------------------
+         * 7. Create organization session
+         * ---------------------------------------------------------
+         *
+         * Session now knows:
+         *
+         * User
+         *    ↓
+         * Membership
+         *    ↓
+         * Organization
+         */
+        return sessionService.createSession(membership);
     }
 
     private OrganizationMember selectMembership(
-            List<OrganizationMember> memberships,
-            Long organizationId) {
+            List<OrganizationMember> memberships) {
 
         /*
          * No active organization membership.
          */
         if (memberships.isEmpty()) {
+
             throw new IllegalArgumentException(
                     "No active organization membership found.");
         }
 
         /*
-         * User belongs to a specific organization.
+         * Current application design:
+         *
+         * One organization-level user
+         * belongs to one active organization.
          */
-        if (organizationId != null) {
+        if (memberships.size() == 1) {
 
-            return memberships.stream()
-                    .filter(m -> m.getOrganization() != null
-                            && organizationId.equals(
-                                    m.getOrganization().getOrgId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "No active membership found for the selected organization."));
+            return memberships.get(0);
         }
 
         /*
-         * User has multiple organizations.
-         * The login request must specify which organization
-         * they want to enter.
+         * If a user eventually belongs to multiple organizations,
+         * introduce an organization-selection flow after login.
          */
-        if (memberships.size() > 1) {
-            throw new IllegalArgumentException(
-                    "Multiple active memberships found. organizationId is required.");
-        }
-
-        /*
-         * User belongs to exactly one organization.
-         */
-        return memberships.get(0);
+        throw new IllegalArgumentException(
+                "Multiple active organization memberships found. "
+                        + "Organization selection is required.");
     }
 }
-

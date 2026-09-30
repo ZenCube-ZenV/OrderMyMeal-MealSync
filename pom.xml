@@ -109,7 +109,7 @@
                 <configuration>
                     <url>jdbc:postgresql://localhost:5432/ordermymeal</url>
                     <user>postgres</user>
-                    <password>sk1234</password>
+                    <password>root</password>
                 </configuration>
             </plugin>
             <plugin>
